@@ -13,7 +13,7 @@ variable "common_tags" {
 variable "accounts" {
   description = "Map of AWS account numbers to their VPC configuration"
   type = map(object({
-    vpc_cidr       = string
+    vpc_cidr = string
     subnet_details = list(object({
       name = string
       cidr = string
@@ -27,4 +27,98 @@ variable "accounts" {
 variable "account_name" {
   description = "Name for the account (used for naming resources)"
   type        = string
+}
+
+# ---------------------------------------------------------------
+# Security Group
+# ---------------------------------------------------------------
+variable "security_groups" {
+  description = "Security group definitions"
+  type = map(object({
+    description = string
+
+    ingress_rules = list(object({
+      description = string
+      from_port   = number
+      to_port     = number
+      protocol    = string
+      cidr_blocks = list(string)
+    }))
+
+    egress_rules = list(object({
+      description = string
+      from_port   = number
+      to_port     = number
+      protocol    = string
+      cidr_blocks = list(string)
+    }))
+  }))
+  default = {}
+}
+
+# ---------------------------------------------------------------
+# Transit Gateway
+# ---------------------------------------------------------------
+variable "create_transit_gateway" {
+  description = "Enable creation of Transit Gateway"
+  type        = bool
+  default     = false
+}
+
+variable "transit_gateway" {
+  description = "Transit Gateway configuration"
+  type = object({
+    name                            = string
+    description                     = optional(string, "")
+    default_route_table_association = optional(bool, true)
+    default_route_table_propagation = optional(bool, true)
+    dns_support                     = optional(bool, true)
+    vpn_ecmp_support                = optional(bool, true)
+    route_tables = optional(list(object({
+      name = string
+    })), [])
+    vpc_attachments = optional(list(object({
+      name                                = string
+      vpc_id                              = string  # Use "auto" to use the created VPC, or specify a VPC ID
+      subnet_names                        = list(string)  # Specify subnet names to attach
+      default_route_table_association     = optional(bool, true)
+      default_route_table_propagation     = optional(bool, true)
+    })), [])
+    tgw_routes = optional(list(object({
+      route_table_name       = string
+      attachment_name        = string
+      destination_cidr_block = string
+      blackhole              = optional(bool, false)
+    })), [])
+  })
+  default = {
+    name = ""
+  }
+}
+
+# ---------------------------------------------------------------
+# Receiving Account Configuration (for RAM-shared TGW)
+# ---------------------------------------------------------------
+variable "is_receiving_account" {
+  description = "Set to true if this account is receiving a shared TGW from another account"
+  type        = bool
+  default     = false
+}
+
+variable "receiving_account_tgw" {
+  description = "Configuration for receiving account to attach to shared TGW"
+  type = object({
+    name                      = optional(string, "shared-tgw")
+    shared_transit_gateway_id = string  # TGW ID from owner account
+    vpc_attachments = optional(list(object({
+      name                                = string
+      vpc_id                              = string
+      subnet_names                        = list(string)
+      default_route_table_association     = optional(bool, true)
+      default_route_table_propagation     = optional(bool, true)
+    })), [])
+  })
+  default = {
+    shared_transit_gateway_id = ""
+  }
 }
