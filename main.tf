@@ -37,6 +37,19 @@ module "sg" {
 }
 
 # ---------------------------------------------------------------
+# EC2 Instances
+# ---------------------------------------------------------------
+module "ec2" {
+  count                = length(var.ec2_instances) > 0 ? 1 : 0
+  source               = "./Modules/EC2"
+  instances            = var.ec2_instances
+  available_subnet_ids = module.vpc.subnet_ids
+  common_tags          = var.common_tags
+
+  depends_on = [module.vpc, module.sg]
+}
+
+# ---------------------------------------------------------------
 # Transit Gateway
 # ---------------------------------------------------------------
 module "tgw" {

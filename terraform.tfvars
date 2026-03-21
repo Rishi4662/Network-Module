@@ -155,3 +155,49 @@ receiving_account_tgw = {
     # }
   ]
 }
+
+# ---------------------------------------------------------------
+# EC2 Instances
+# ---------------------------------------------------------------
+ec2_instances = {
+  "web-server-1" = {
+    ami                = "ami-0c55b159cbfafe1f0"  # Amazon Linux 2 in ap-south-1 (update with correct AMI ID)
+    instance_type      = "t3.micro"
+    subnet_id          = "subnet-web"              # Reference to subnet name
+    associate_public_ip = true
+    monitoring         = false
+    root_volume = {
+      volume_size = 20
+      volume_type = "gp3"
+      encrypted   = true
+    }
+    ebs_volumes = [
+      # {
+      #   device_name = "/dev/sdf"
+      #   volume_size = 50
+      #   volume_type = "gp3"
+      #   encrypted   = true
+      # }
+    ]
+    tags = {
+      Environment = "production"
+      Role        = "web"
+    }
+  }
+  # "app-server-1" = {
+  #   ami                = "ami-0c55b159cbfafe1f0"
+  #   instance_type      = "t3.small"
+  #   subnet_id          = "subnet-app"
+  #   associate_public_ip = false
+  #   monitoring         = true
+  #   root_volume = {
+  #     volume_size = 30
+  #     volume_type = "gp3"
+  #     encrypted   = true
+  #   }
+  #   tags = {
+  #     Environment = "production"
+  #     Role        = "application"
+  #   }
+  # }
+}
